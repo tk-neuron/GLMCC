@@ -4,10 +4,10 @@ this file defines constant parameters
 """
 
 # --- required to customize --- #
-DATA_DIR = './datasets/sample15/'  # path to dataset
+DATA_DIR = './datasets/'  # path to dataset
 PREFIX = 'cell'  # file name prefix of dataset
 EXTENSION = 'txt'  # file extension of dataset
-SAVE_DIR = './results/sample15/'  # save directory of results
+SAVE_DIR = './results/'  # save directory of results
 
 # --- optionally customizable parameters --- #
 START = 0.0  # start time [ms]

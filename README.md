@@ -2,7 +2,10 @@
 
 ## Overview
 
-This is **unofficial** Python implementation of GLMCC (generalized linear model for spike cross-correlogram). Original paper: [Kobayashi et al., Nature Communications 2019](https://www.nature.com/articles/s41467-019-12225-2)
+This is **unofficial** Python implementation of GLMCC (generalized linear model for spike cross-correlogram).
+
+Original paper: [Kobayashi et al., Nature Communications 2019](https://www.nature.com/articles/s41467-019-12225-2)
+
 Original code: [github](https://github.com/NII-Kobayashi/GLMCC)
 
 ## Requirement

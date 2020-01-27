@@ -16,7 +16,7 @@ Original code: [github](https://github.com/NII-Kobayashi/GLMCC)
 
 ## Getting Started
 
-You can test with the sample dataset (`datasets/sample15/`). 
+You can test with the sample dataset (`datasets/`)
 
 To estimate all the connectivity on the sample dataset, just run:
 

@@ -2,6 +2,10 @@
 *** SCRIPT FILE ***
 $ python3 estimation.py
 
+this code estimates all connectivity on the dataset, and returns connectivity values in csv.
+output file's name: J_[end time]_[firing threshold]Hz.csv
+csv format: reference id, target id, J_ij, J_ji, J_ij threshold, J_ji threshold, max log posterior
+
 """
 
 import csv
@@ -13,6 +17,9 @@ import params
 
 
 def estimate_single_connection(t_sp, synaptic_delay):
+    """
+    optimize log posterior for synaptic delay
+    """
     glm_list = [glmcc.GLMCC(delay=delay) for delay in synaptic_delay]  # optimize synaptic delay
     tmp_log_posterior = -1e05  # minimum log posterior
     max_posterior_idx = None
@@ -50,8 +57,12 @@ def estimate_all_connection(data_dir, prefix, extension, save_dir, start, end, w
             print("J_ij, J_ji: {}".format(optimal_glm.theta[-2:]))
             print("J thresholds: {}".format(optimal_glm.j_thresholds))
             print("presence of connectivity: {}".format(np.abs(optimal_glm.theta[-2:]) >= optimal_glm.j_thresholds))
-            result.append((pair[0], pair[1], optimal_glm.theta[-2], optimal_glm.theta[-1],
-                           optimal_glm.j_thresholds[0], optimal_glm.j_thresholds[1], optimal_glm.max_log_posterior))
+
+            # csv format
+            result.append((pair[0], pair[1],  # reference id, target id
+                           optimal_glm.theta[-2], optimal_glm.theta[-1],  # estimated J_ij, J_ji
+                           optimal_glm.j_thresholds[0], optimal_glm.j_thresholds[1],  # statistical test
+                           optimal_glm.max_log_posterior))  # log posterior optimized for synaptic delay
         print()
 
     with open(save_dir + 'J_{}_{}Hz.csv'.format(int(end/1000), fr_threshold), 'w') as f:

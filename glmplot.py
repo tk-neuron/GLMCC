@@ -2,6 +2,9 @@
 *** SCRIPT FILE ***
 $ python3 glmplot.py
 
+this code estimates single connectivity between reference id and target id specified in params.py, and
+draws a figure of CC and fitted GLM.
+
 """
 
 import numpy as np
@@ -12,6 +15,9 @@ import params
 
 
 def estimate_single_connection(t_sp, synaptic_delay):
+    """
+    optimize log posterior for synaptic delay
+    """
     glm_list = [glmcc.GLMCC(delay=delay) for delay in synaptic_delay]  # optimize synaptic delay
     tmp_log_posterior = -1e05  # minimum log posterior
     max_posterior_idx = None

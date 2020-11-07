@@ -35,13 +35,3 @@ def _search_max_idx(lst, upper, start_idx=0):
     while len(lst) > idx and lst[idx] <= upper:
         idx += 1
     return idx
-
-
-def glm_summary(glm):
-    """
-    fitted GLM's summary
-    :param glm: GLMCC class instance
-    """
-    print("estimated J_ij, J_ji: {}, {}".format(round(glm.theta[-2], 2), round(glm.theta[-1], 2)))
-    print("threshold: {}, {}".format(round(glm.j_thresholds[0], 2), round(glm.j_thresholds[1], 2)))
-    print("max log posterior: " + str(int(glm.max_log_posterior)))

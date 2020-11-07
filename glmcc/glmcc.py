@@ -328,3 +328,10 @@ class GLMCC(_Gk):
             plt.show()
 
         plt.close()
+
+    def summary(self):
+        print("--- glmcc summary ---")
+        print("connectivity from neuron j to neuron i")
+        print("estimated J_ij, J_ji: {}, {}".format(round(self.theta[-2], 2), round(self.theta[-1], 2)))
+        print("threshold J_ij, J_ji: {}, {}".format(round(self.j_thresholds[0], 2), round(self.j_thresholds[1], 2)))
+        print("max log posterior: " + str(int(self.max_log_posterior)))

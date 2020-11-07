@@ -163,7 +163,7 @@ class GLMCC(_Gk):
         cc, _bins = np.histogram(t_sp, bins=self.m, range=(-self.w, self.w))
         return cc
 
-    def fit(self, t_sp, clm=0.01, eta=0.1, max_iter=1000, j_min=-3.0, j_max=5.0):
+    def fit(self, t_sp, clm=0.01, eta=0.1, max_iter=1000, j_min=-3.0, j_max=5.0, verbose=True):
         """
         fit the model parameters to relative spike time and CC
         """
@@ -211,8 +211,9 @@ class GLMCC(_Gk):
                 self.theta = tmp_theta
                 clm *= (1 / eta)
                 continue
-
-        print("iterations needed: {}".format(iter_count))
+                
+        if verbose:
+            print("iterations needed: {}".format(iter_count))
         self.max_log_posterior = new_log_posterior
         self._statistical_test()
         return True

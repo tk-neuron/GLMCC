@@ -19,8 +19,4 @@ Original code: [github](https://github.com/NII-Kobayashi/GLMCC)
 
 ## Examples
 
-In `./examples`, there is an example jupyter notebook `example.ipynb` that explains how GLMCC works with sample spike train data `sample_data.csv`.
-
-Below is bokeh visualization of fitted GLMCC (example code is in `./examples/bokeh_visualization.ipynb`).
-
-![Bokeh Visualization](https://user-images.githubusercontent.com/38024515/98433558-85ea1700-210b-11eb-8a9e-e737062bfb8f.png)
+In `./examples`, you can see an example jupyter notebook `example.ipynb` that describes how GLMCC works with sample spike train data `sample_data.csv`.

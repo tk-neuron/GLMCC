@@ -31,4 +31,4 @@ glm.fit(t_sp)
 print(glm.theta[-2], glm.theta[-1])  # estimated synaptic weights
 ```
 
-For details, please take a look at the notebook in `examples` directory with sample data.
+For details, please take a look at the notebook in [`examples`](https://github.com/tk-neuron/GLMCC/blob/master/examples/example.ipynb) directory with sample data.

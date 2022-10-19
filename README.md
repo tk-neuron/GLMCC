@@ -23,7 +23,8 @@ from glmcc import spiketime_relative
 spiketrains = {}  # prepare your spiketrain data [ms]
 
 # relative spiketime (target - reference)
-t_sp = spiketime_relative(spiketime_tar=spiketrians[TARGET_NEURON_ID], spiketime_ref=spiketrains[REFERENCE_NEURON_ID], window_size=50.0)
+t_sp = spiketime_relative(spiketime_tar=spiketrians[TARGET_NEURON_ID], 
+                          spiketime_ref=spiketrains[REFERENCE_NEURON_ID], window_size=50.0)
 
 glm = GLMCC(delay=1.0)  # tune synaptic delay [ms]
 glm.fit(t_sp)

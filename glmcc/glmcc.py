@@ -14,6 +14,13 @@ from scipy import special
 import matplotlib.pyplot as plt
 
 
+class NotFittedError(ValueError, AttributeError):
+    """Exception class to raise if estimator is used before fitting.
+    This class inherits from both ValueError and AttributeError to help with
+    exception handling and backward compatibility.
+    """
+
+
 class _BaseGLM:
     """
     basic setting and functions for GLMCC
@@ -55,7 +62,7 @@ class _BaseGLM:
 
 class _Gk(_BaseGLM):
     """
-    calculate Gk and its derivatives
+    a class for calculating derivatives for gradient methods
     """
 
     def __init__(self, bin_width, window, delay, tau, beta, theta):
@@ -137,6 +144,8 @@ class _Gk(_BaseGLM):
 
 class GLMCC(_Gk):
     """
+    a class for building sklearn-like model
+
     usage
     > import glmcc
     > glm = glmcc.GLMCC(bin_width, window, delay, tau, beta, theta)
@@ -155,6 +164,7 @@ class GLMCC(_Gk):
         super().__init__(bin_width, window, delay, tau, beta, theta)
         self.max_log_posterior = None
         self.j_thresholds = None  # statistical test for putative J_ij and J_ji
+        self.__is_fitted = False
 
     def make_cc(self, t_sp):
         """
@@ -166,6 +176,7 @@ class GLMCC(_Gk):
     def fit(self, t_sp, clm=0.01, eta=0.1, max_iter=1000, j_min=-3.0, j_max=5.0, verbose=True):
         """
         fit the model parameters to relative spike time and CC
+        return True if fitting is successful, otherwise False
         """
         # initialize parameters
         t_sp = np.array(t_sp)
@@ -196,7 +207,7 @@ class GLMCC(_Gk):
             iter_count += 1
 
             if iter_count == max_iter:
-                print("LM does not converge within 1000 times: breaking the loop.")
+                print("Values did not converge within 1000 times: breaking the loop.")
                 return False
 
             elif new_log_posterior - tmp_log_posterior >= 0:
@@ -213,12 +224,14 @@ class GLMCC(_Gk):
                 continue
                 
         if verbose:
-            print("iterations needed: {}".format(iter_count))
+            print("iterations until convergence: {}".format(iter_count))
+
         self.max_log_posterior = new_log_posterior
-        self._statistical_test()
+        self.__statistical_test()
+        self.__is_fitted = True
         return True
 
-    def _statistical_test(self, z_alpha=3.29):
+    def __statistical_test(self, z_alpha=3.29):
         """
         test whether the estimated connectivity is statistically significant
         :param z_alpha: if alpha = 0.01, set at 2.58; if alpha = 0.001, set at 3.29
@@ -247,7 +260,6 @@ class GLMCC(_Gk):
 
         gradient[-2] = np.sum(self.func_f(t_sp[t_sp > self.delay])) - np.sum(dgk_dj_ij)
         gradient[-1] = np.sum(self.func_f(-t_sp[t_sp < -self.delay])) - np.sum(dgk_dj_ji)
-
         return gradient
 
     def _hessian(self):
@@ -262,7 +274,6 @@ class GLMCC(_Gk):
         (dgk_dj_ij, dgk_dj_ji) = self.gk_first_derivative()
         hessian[:self.m, -2] = - dgk_dj_ij
         hessian[:self.m, -1] = - dgk_dj_ji
-
         hessian[[-2, -1], :self.m] = hessian[:self.m, [-2, -1]].T  # transpose
 
         # third segment of hessian: 2 * 2; no need to calc d2logp/dj_dj since it equals zero
@@ -279,60 +290,42 @@ class GLMCC(_Gk):
         """
         return self.k == l
 
-    def plot(self, t_sp, title=None, save_path=None, save=False, show=True,
-             figsize=(5, 5), fontsize=15, figure_dpi=120):
+    def plot(self, ax, t_sp, colors={0: 'gray', 1: 'cyan', 2: 'magenta'}, verbose=True):
         """
         plot cross-correlogram and fitted GLM together
         """
-
-        fig, ax = plt.subplots(figsize=figsize)
-        ax.set_xlabel('time [ms]', fontsize=fontsize)
-        ax.set_ylabel('cc', fontsize=fontsize)
-        ax.set_xticks([-self.w, 0, self.w])
-        ax.set_xticklabels([-self.w, 0, self.w])
-        ax.tick_params(axis='both', which='major', labelsize=12)
-
         cc = self.make_cc(np.array(t_sp))
-
         at = np.exp(self.theta[:self.m])
         j_ij = np.exp(self.theta[-2] * self.func_f(s=self.xk) + self.theta[:self.m])
         j_ji = np.exp(self.theta[-1] * self.func_f(s=-self.xk) + self.theta[:self.m])
-
         ax.bar(self.xk, cc, color='black', width=1.0)
 
         # connectivity undetermined: gray, positive j: magenta, negative j: cyan
-        colors = {0: 'gray', 1: 'cyan', 2: 'magenta'}
+        if self.__is_fitted:
+            ax.plot(self.xk, j_ij, linewidth=3.0,
+                    color=colors[(abs(self.theta[-2]) >= self.j_thresholds[0]) * ((self.theta[-2] > 0) + 1)])
+            ax.plot(self.xk, j_ji, linewidth=3.0,
+                    color=colors[(abs(self.theta[-1]) >= self.j_thresholds[1]) * ((self.theta[-1] > 0) + 1)])
+            ax.plot(self.xk, at, linewidth=3.0, color='lime')
+        else:
+            if verbose:
+                print('GLM not fitted yet, plotting only cross-correlogram')
 
-        ax.plot(self.xk, j_ij, linewidth=3.0,
-                color=colors[(abs(self.theta[-2]) >= self.j_thresholds[0]) * ((self.theta[-2] > 0) + 1)])
-        ax.plot(self.xk, j_ji, linewidth=3.0,
-                color=colors[(abs(self.theta[-1]) >= self.j_thresholds[1]) * ((self.theta[-1] > 0) + 1)])
-
-        ax.plot(self.xk, at, linewidth=3.0, color='lime')
-
+        ax.set_xticks([-self.w, 0, self.w])
         ax.set_xlim(-self.w, self.w)
         ax.set_ylim(0, max(np.max(cc), np.max(j_ij), np.max(j_ji)) * 1.1)
-
-        if title is not None:
-            ax.set_title(title, fontsize=fontsize)
-
-        ax.grid()
-
-        if save:
-            if save_path is None:
-                print("please specify the save path")
-            else:
-                plt.savefig(save_path, bbox_inches="tight", pad_inches=0.1, dpi=figure_dpi)
-                print("GLMCC graph saved in " + save_path)
-
-        if show:
-            plt.show()
-
-        plt.close()
+        return ax
 
     def summary(self):
-        print("--- glmcc summary ---")
-        print("connectivity from neuron j to neuron i")
-        print("estimated J_ij, J_ji: {}, {}".format(round(self.theta[-2], 2), round(self.theta[-1], 2)))
-        print("threshold J_ij, J_ji: {}, {}".format(round(self.j_thresholds[0], 2), round(self.j_thresholds[1], 2)))
-        print("max log posterior: " + str(int(self.max_log_posterior)))
+        if self.__is_fitted:
+            txt_start = '='*15 + ' GLMCC summary ' + '='*15
+            txt_end = '='*15 + '===============' + '='*15
+            txt_msg = "connectivity from neuron j to neuron i: "
+            txt_est = "\t estimated J_ij, J_ji: {}, {}".format(round(self.theta[-2], 2), round(self.theta[-1], 2))
+            txt_thr = "\t threshold J_ij, J_ji: {}, {}".format(round(self.j_thresholds[0], 2), round(self.j_thresholds[1], 2))
+            txt_log = "max log posterior: " + str(int(self.max_log_posterior))
+            txt_all = '\n'.join([txt_start, txt_msg, txt_est, txt_thr, txt_log, txt_end])
+            print(txt_all)
+
+        else:
+            raise NotFittedError('GLMCC is not fitted yet.')

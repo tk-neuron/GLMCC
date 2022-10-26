@@ -23,7 +23,7 @@ from glmcc import spiketime_relative
 spiketrains = {
   1: [],
   2: [],
-  // ... //
+  # ... #
 }  # prepare your spiketrain data [ms]
 
 # relative spiketime (target - reference)

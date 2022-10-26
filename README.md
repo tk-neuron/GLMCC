@@ -20,14 +20,19 @@ Note that this code is not reviewed by original authors. This code is a refactor
 from glmcc import GLMCC  # model
 from glmcc import spiketime_relative
 
-spiketrains = {}  # prepare your spiketrain data [ms]
+spiketrains = {
+  1: [],
+  2: [],
+  // ... //
+}  # prepare your spiketrain data [ms]
 
 # relative spiketime (target - reference)
-t_sp = spiketime_relative(spiketime_tar=spiketrians[TARGET_NEURON_ID], 
+t_sp = spiketime_relative(spiketime_tar=spiketrains[TARGET_NEURON_ID], 
                           spiketime_ref=spiketrains[REFERENCE_NEURON_ID], window_size=50.0)
 
 glm = GLMCC(delay=1.0)  # tune synaptic delay [ms]
 glm.fit(t_sp)
+glm.summary()  # print fitting summary
 
 print(glm.theta[-2], glm.theta[-1])  # estimated synaptic weights
 ```
